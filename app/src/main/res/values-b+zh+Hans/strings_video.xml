@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 视频与 AList（feat-video-alist）。单独成文件以便合并。 -->
+    <string name="video_insert">插入视频…</string>
+    <string name="video_open">打开</string>
+    <string name="video_open_alist">从 AList 打开</string>
+    <string name="video_open_url">打开网址</string>
+    <string name="video_open_local">打开本地文件</string>
+    <string name="video_play">播放</string>
+    <string name="video_pause">暂停</string>
+    <string name="video_back10">后退 10 秒</string>
+    <string name="video_forward10">前进 10 秒</string>
+    <string name="video_speed">播放速度</string>
+    <string name="video_capture">截取画面</string>
+    <string name="video_insert_link">插入时间戳链接</string>
+    <string name="video_pop_out">弹出为悬浮窗</string>
+    <string name="video_pin">固定到画布</string>
+    <string name="video_fullscreen">全屏</string>
+    <string name="video_exit_fullscreen">退出全屏</string>
+    <string name="video_stop">停止视频</string>
+    <string name="video_close">关闭</string>
+    <string name="video_minimize">最小化</string>
+    <string name="video_restore">还原</string>
+    <string name="video_resize">调整大小</string>
+    <string name="video_untitled">视频</string>
+    <string name="video_error">无法播放：%1$s</string>
+    <string name="video_open_failed">无法打开视频：%1$s</string>
+    <string name="video_capture_failed">暂无可截取的画面</string>
+    <string name="video_needs_paged_note">视频只能嵌入分页笔记</string>
+    <string name="video_pin_rotated">请先取消视图旋转，再将视频固定到页面</string>
+    <string name="video_alist_not_configured">请先配置 AList 服务器</string>
+    <string name="alist_settings">AList 服务器</string>
+    <string name="alist_server">服务器地址</string>
+    <string name="alist_username">用户名</string>
+    <string name="alist_password">密码</string>
+    <string name="alist_token">令牌（可选，可代替密码）</string>
+    <string name="alist_settings_hint">填写用户名和密码，或粘贴 AList 设置中的令牌。两者都留空则以游客身份浏览。凭据会在本设备上加密保存。</string>
+    <string name="alist_test">测试连接</string>
+    <string name="alist_test_ok">连接成功</string>
+    <string name="alist_test_failed">连接失败</string>
+    <string name="alist_save_failed">无法安全保存凭据</string>
+    <string name="alist_refresh">刷新</string>
+    <string name="alist_up">上一级</string>
+    <string name="alist_root">根目录</string>
+    <string name="alist_empty">这里没有文件夹或视频</string>
+    <string name="alist_error">加载失败：%1$s</string>
+</resources>

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- In-note video and AList (feat-video-alist). Kept in their own file to ease merging. -->
+    <string name="video_insert">Insert video…</string>
+    <string name="video_open">Open</string>
+    <string name="video_open_alist">Open from AList</string>
+    <string name="video_open_url">Open URL</string>
+    <string name="video_open_local">Open local file</string>
+    <string name="video_play">Play</string>
+    <string name="video_pause">Pause</string>
+    <string name="video_back10">Back 10 seconds</string>
+    <string name="video_forward10">Forward 10 seconds</string>
+    <string name="video_speed">Playback speed</string>
+    <string name="video_capture">Capture frame</string>
+    <string name="video_insert_link">Insert timestamp link</string>
+    <string name="video_pop_out">Pop out</string>
+    <string name="video_pin">Pin to canvas</string>
+    <string name="video_fullscreen">Fullscreen</string>
+    <string name="video_exit_fullscreen">Exit fullscreen</string>
+    <string name="video_stop">Stop video</string>
+    <string name="video_close">Close</string>
+    <string name="video_minimize">Minimize</string>
+    <string name="video_restore">Restore</string>
+    <string name="video_resize">Resize</string>
+    <string name="video_untitled">Video</string>
+    <string name="video_error">Can’t play: %1$s</string>
+    <string name="video_open_failed">Couldn’t open the video: %1$s</string>
+    <string name="video_capture_failed">No frame to capture yet</string>
+    <string name="video_needs_paged_note">Videos can be embedded in paged notes</string>
+    <string name="video_pin_rotated">Reset the view rotation to pin a video to the page</string>
+    <string name="video_alist_not_configured">Set up your AList server first</string>
+    <string name="alist_settings">AList server</string>
+    <string name="alist_server">Server URL</string>
+    <string name="alist_username">Username</string>
+    <string name="alist_password">Password</string>
+    <string name="alist_token">Token (optional, instead of password)</string>
+    <string name="alist_settings_hint">Use a username and password, or paste a token from AList’s settings. Leave both empty to browse as guest. Credentials are encrypted on this device.</string>
+    <string name="alist_test">Test connection</string>
+    <string name="alist_test_ok">Connected</string>
+    <string name="alist_test_failed">Failed</string>
+    <string name="alist_save_failed">Couldn’t store the credentials securely</string>
+    <string name="alist_refresh">Refresh</string>
+    <string name="alist_up">Up one folder</string>
+    <string name="alist_root">Root</string>
+    <string name="alist_empty">No folders or videos here</string>
+    <string name="alist_error">Couldn’t load: %1$s</string>
+</resources>

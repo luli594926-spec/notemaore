@@ -599,6 +599,12 @@ private fun ImageMenu(editor: Editor, onInsertImage: () -> Unit, onAddStickers: 
             DropdownMenuItem(text = { Text(stringResource(R.string.paste_image)) }, onClick = { editor.pasteImage(); expanded = false })
             DropdownMenuItem(text = { Text(stringResource(R.string.insert_image_ellipsis)) }, onClick = { onInsertImage(); expanded = false })
             DropdownMenuItem(text = { Text(stringResource(R.string.stickers)) }, onClick = { expanded = false; stickersOpen = true })
+            // feat-video-alist: embed a video (AList / URL / local file) on the page.
+            val videoContext = androidx.compose.ui.platform.LocalContext.current
+            DropdownMenuItem(
+                text = { Text(stringResource(R.string.video_insert)) },
+                onClick = { expanded = false; com.xnotes.video.VideoSessions.of(editor, videoContext).pickerOpen = true },
+            )
         }
         if (stickersOpen) StickersMenu(editor, onAddStickers) { stickersOpen = false }
     }

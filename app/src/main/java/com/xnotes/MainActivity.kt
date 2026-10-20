@@ -1270,6 +1270,8 @@ private fun EditorPane(
                         com.xnotes.ui.FlowTableMenu(editor)
                         com.xnotes.ui.TableChrome(editor)
                         ZoomLockHint(editor)
+                        // Embedded / floating video over this pane's canvas (feat-video-alist).
+                        com.xnotes.video.VideoLayer(editor)
                     }
                 }
             }
