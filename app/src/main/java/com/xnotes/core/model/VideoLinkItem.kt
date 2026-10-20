@@ -61,8 +61,9 @@ fun formatTimestamp(seconds: Double): String {
 
 /**
  * A tappable link to a moment in a video, drawn on the page as a small chip: a play triangle, the
- * video's [title] and the [seconds] it jumps to. A finger tap opens the in-app video panel at that
- * moment (see `Editor.onVideoLinkTap`); it moves, deletes and undoes like any other item.
+ * video's [title] and the [seconds] it jumps to. A finger tap seeks that video in the app: its
+ * embedded player when it is on screen, else the floating window (see `Editor.onVideoTap` and
+ * `com.xnotes.video.VideoSession.openLink`). It moves, deletes and undoes like any other item.
  *
  * Its size follows its text, so there is nothing to resize; it never rotates or mirrors.
  * Identity semantics like every [CanvasItem] (never override equals).
