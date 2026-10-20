@@ -24,6 +24,8 @@ import com.xnotes.core.model.ShapeLabel
 import com.xnotes.core.model.Stroke
 import com.xnotes.core.model.TextItem
 import com.xnotes.core.model.TextStyle
+import com.xnotes.core.model.VideoItem
+import com.xnotes.core.model.VideoLinkItem
 import com.xnotes.core.pal.FontFace
 import com.xnotes.core.pal.ImageCodec
 import com.xnotes.core.pal.TextMeasurer
@@ -298,6 +300,8 @@ class DocumentCodec(
                 is TextItem -> writeText(j, item, ids[item])
                 is ShapeItem -> writeShape(j, item, ids[item])
                 is ConnectorItem -> writeConnector(j, item, ids)
+                is VideoLinkItem -> VideoLinkJson.write(j, item) // feat-video-alist
+                is VideoItem -> VideoLinkJson.writeVideo(j, item) // feat-video-alist
                 else -> {} // unrecognized kind: not written
             }
         }
@@ -951,6 +955,8 @@ class DocumentCodec(
         var dashed = false
         var dashLength = 10.0
         var dashGap = 8.0
+        /** A video link's nested fields (feat-video-alist); see [VideoLinkJson]. */
+        var video: VideoLinkJson.Scratch? = null
     }
 
     /** Stroke config fields as written; null = absent, so defaults resolve exactly as before. */
@@ -1022,6 +1028,7 @@ class DocumentCodec(
                 "dash_length" -> s.dashLength = doubleOr(p, 10.0)
                 "dash_gap" -> s.dashGap = doubleOr(p, 8.0)
                 "locked" -> s.locked = boolOr(p, false)
+                "video" -> s.video = VideoLinkJson.read(p)
                 else -> p.skipValue()
             }
         }
@@ -1056,6 +1063,8 @@ class DocumentCodec(
                 val c = s.connector
                 items.add(if (c != null && s.kind == ShapeItem.KIND) buildConnector(s, c, glue) else buildShape(s))
             }
+            VideoLinkItem.KIND -> VideoLinkJson.build(s.video, s.pos, textMeasurer)?.let { items.add(it) }
+            VideoItem.KIND -> VideoLinkJson.buildVideo(s.video, s.rect, textMeasurer)?.let { items.add(it) }
             else -> {} // unrecognized kind: skipped (forgiving)
         }
         if (items.size > before) glue.named(items[before], s.id)

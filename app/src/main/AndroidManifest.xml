@@ -5,6 +5,9 @@
          it, so a device without it keeps the rest of the app. -->
     <uses-feature android:glEsVersion="0x00030000" android:required="false" />
 
+    <!-- In-note video (feat-video-alist): streaming URLs and the AList client. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- The apps that act on selected text ("Translate", "Search"), listed in a PDF text
          selection's menu; Android 11 and later hide them from apps that do not ask. -->
     <queries>
@@ -21,6 +24,7 @@
         android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/Theme.Xnotes">
         <activity
             android:name=".MainActivity"

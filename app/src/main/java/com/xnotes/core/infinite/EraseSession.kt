@@ -53,7 +53,7 @@ class EraseSession(private val doc: InfiniteDocument) {
         val box = Rect(cx - radius, cy - radius, radius * 2, radius * 2)
         var dirty: Rect? = null
         for (item in doc.itemsIn(box)) {
-            if (item.locked || item is ImageItem || item is TextItem) continue
+            if (item.locked || item is ImageItem || item is TextItem || item is com.xnotes.core.model.EraserProtected) continue
             val fragments: List<CanvasItem> = if (area) {
                 when (item) {
                     is Stroke -> item.erasedBy(cx, cy, radius) ?: continue

@@ -200,6 +200,8 @@ private const val PROCESS_TEXT_MAX = 100_000
 
 /** How far off an address written in a PDF's text a tap may land and still open it. */
 private const val AUTO_LINK_SLOP_DP = 4.0
+/** Gap between a video item and what is placed beside it (feat-video-alist), page px. */
+private const val VIDEO_GAP = 12.0
 
 /** How far a markup's note window stands off the markup. */
 private const val NOTE_PEEK_GAP_DP = 10.0
@@ -1539,6 +1541,7 @@ class Editor(context: Context, val pane: Pane = Pane.PRIMARY) : ToolPopupHost, S
         controller.onMarkupTap = { at, withLink -> tapMarkup(at, withLink) }
         controller.onTap = { at -> tapClosesNotePeek(at) }
         controller.onLinkTap = onLinkTap@{ pageIndex, pageLocal ->
+            if (tapVideo(pageIndex, pageLocal)) return@onLinkTap true // feat-video-alist
             val src = pdfSource ?: return@onLinkTap false
             val page = state.document.pages.getOrNull(pageIndex) ?: return@onLinkTap false
             val pdfIdx = page.pdfPage ?: return@onLinkTap false
@@ -2045,6 +2048,162 @@ class Editor(context: Context, val pane: Pane = Pane.PRIMARY) : ToolPopupHost, S
         refreshContent()
         view.requestRender()
     }
+
+    // --- video (feat-video-alist) ---------------------------------------------------------------
+    // The page-side half of in-note video: hit-testing taps on video items and links, and placing
+    // new ones. Everything that plays lives in com.xnotes.video, which installs [onVideoTap].
+
+    /**
+     * A finger tap landed on a [com.xnotes.core.model.VideoItem] or
+     * [com.xnotes.core.model.VideoLinkItem]; true when the video layer took it (the tap is then
+     * consumed, as an opened PDF link's is). Installed by `com.xnotes.video.VideoLayer`.
+     */
+    var onVideoTap: ((item: CanvasItem, pageIndex: Int, pageLocal: Pt) -> Boolean)? = null
+
+    private fun tapVideo(pageIndex: Int, pageLocal: Pt): Boolean {
+        val cb = onVideoTap ?: return false
+        val page = state.document.pages.getOrNull(pageIndex) ?: return false
+        val hit = page.items.lastOrNull {
+            (it is com.xnotes.core.model.VideoItem || it is com.xnotes.core.model.VideoLinkItem) && it.contains(pageLocal)
+        } ?: return false
+        return cb(hit, pageIndex, pageLocal)
+    }
+
+    /** Index of the page holding [item] (by identity), or -1 once it has been deleted. */
+    fun pageIndexOfItem(item: CanvasItem): Int =
+        state.document.pages.indexOfFirst { p -> p.items.any { it === item } }
+
+    /** The page under the middle of the view, and that point in its page space, clamped onto the paper. */
+    private fun videoSpot(): Pair<Int, Pt> {
+        val centre = state.viewportToContent(Pt(state.viewportW / 2.0, state.viewportH / 2.0))
+        val index = (state.pageIndexAtContent(centre) ?: state.currentPageIndex())
+            .coerceIn(0, state.document.pages.lastIndex)
+        val cover = state.footprint(state.document.pages[index])
+        val local = if (state.pageRects.getOrNull(index) != null) state.toPageSpace(index, centre) else cover.center
+        return index to Pt(local.x.coerceIn(cover.left, cover.right), local.y.coerceIn(cover.top, cover.bottom))
+    }
+
+    private fun commitVideoItem(index: Int, item: CanvasItem) {
+        val page = state.document.pages[index]
+        page.items.add(item)
+        state.appendToCache(page, item)
+        history.push(AddItem(page, item))
+        state.document.dirty = true
+        refreshContent()
+        view.requestRender()
+    }
+
+    /**
+     * Embed a video on the page under the middle of the view, centred there: [widthFraction] of the
+     * page wide at the video's aspect ([videoW]×[videoH], 16:9 when unknown), never off the paper.
+     */
+    fun insertVideoItem(
+        source: com.xnotes.core.model.VideoSource,
+        title: String,
+        startSeconds: Double = 0.0,
+        videoW: Int = 0,
+        videoH: Int = 0,
+        widthFraction: Double = 0.6,
+    ): com.xnotes.core.model.VideoItem? {
+        if (!noteOpen || canvasOpen || state.document.pages.isEmpty()) return null
+        val (index, at) = videoSpot()
+        val page = state.document.pages[index]
+        val cover = state.footprint(page)
+        val aspect = if (videoW > 0 && videoH > 0) videoW.toDouble() / videoH else com.xnotes.core.model.VideoItem.DEFAULT_ASPECT
+        var w = page.width * widthFraction
+        var h = w / aspect
+        if (h > page.height * 0.8) { h = page.height * 0.8; w = h * aspect }
+        val rect = Rect(
+            (at.x - w / 2).coerceIn(cover.left, (cover.right - w).coerceAtLeast(cover.left)),
+            (at.y - h / 2).coerceIn(cover.top, (cover.bottom - h).coerceAtLeast(cover.top)),
+            w, h,
+        )
+        val item = com.xnotes.core.model.VideoItem(rect, source, title, startSeconds, textMeasurer)
+        commitVideoItem(index, item)
+        return item
+    }
+
+    /**
+     * Insert a link to [seconds] into [source]: just under [near] (stacked below links already
+     * there) when it is given and still on a page, else in the middle of the view.
+     */
+    fun insertVideoLink(
+        source: com.xnotes.core.model.VideoSource,
+        title: String,
+        seconds: Double,
+        near: CanvasItem? = null,
+    ): com.xnotes.core.model.VideoLinkItem? {
+        if (!noteOpen || canvasOpen || state.document.pages.isEmpty()) return null
+        val nearIndex = near?.let { pageIndexOfItem(it) } ?: -1
+        val (index, at) = if (nearIndex >= 0) nearIndex to Pt(near!!.bounds().left, near.bounds().bottom + VIDEO_GAP) else videoSpot()
+        val page = state.document.pages[index]
+        val cover = state.footprint(page)
+        val link = com.xnotes.core.model.VideoLinkItem(at, source, title, seconds, measurer = textMeasurer)
+        // Step down past whatever link already sits there, so repeated taps make a list.
+        var guard = 0
+        while (guard++ < 40 && page.items.any { it is com.xnotes.core.model.VideoLinkItem && it.bounds().intersects(link.bounds()) }) {
+            link.translate(0.0, link.bounds().h + VIDEO_GAP / 2)
+        }
+        val b = link.bounds()
+        link.pos = Pt(
+            b.left.coerceIn(cover.left, (cover.right - b.w).coerceAtLeast(cover.left)),
+            b.top.coerceIn(cover.top, (cover.bottom - b.h).coerceAtLeast(cover.top)),
+        )
+        commitVideoItem(index, link)
+        return link
+    }
+
+    /**
+     * Insert a grabbed frame through the ordinary image path ([insertImageAt]) beside [near] (to its
+     * right when the paper has room, else below it) or in the middle of the view, then a timestamp
+     * link under the picture. Two undo steps: the picture, then its label.
+     */
+    fun insertVideoFrame(
+        encoded: ByteArray,
+        frameW: Int,
+        frameH: Int,
+        source: com.xnotes.core.model.VideoSource,
+        title: String,
+        seconds: Double,
+        near: CanvasItem? = null,
+    ) {
+        if (!noteOpen || canvasOpen || state.document.pages.isEmpty()) return
+        val nearIndex = near?.let { pageIndexOfItem(it) } ?: -1
+        val index = if (nearIndex >= 0) nearIndex else videoSpot().first
+        val page = state.document.pages[index]
+        val cover = state.footprint(page)
+        // The size insertImageAt will give it, so the centre handed to it lands the box where meant.
+        val scale = minOf(1.0, page.width * 0.6 / frameW.coerceAtLeast(1), page.height * 0.6 / frameH.coerceAtLeast(1))
+        val w = frameW * scale
+        val h = frameH * scale
+        val centreLocal = if (nearIndex >= 0) {
+            val r = near!!.bounds()
+            if (r.right + VIDEO_GAP + w <= cover.right) Pt(r.right + VIDEO_GAP + w / 2, r.top + h / 2)
+            else Pt(r.left + w / 2, r.bottom + VIDEO_GAP * 4 + h / 2)
+        } else videoSpot().second
+        val atContent = if (state.pageRects.getOrNull(index) != null) state.fromPageSpace(index, centreLocal) else null
+        val before = page.items.size
+        insertImageAt(encoded, atContent)
+        val image = if (page.items.size > before) page.items.last() as? ImageItem else null
+        insertVideoLink(source, title, seconds, near = image ?: near)
+    }
+
+    /**
+     * A video item changed outside the history (its poster, its resume point, its box fitted to
+     * the real aspect): repaint its page, and when [persist], mark the note for autosave.
+     */
+    fun videoItemChanged(item: CanvasItem, persist: Boolean) {
+        val index = pageIndexOfItem(item)
+        if (index < 0) return
+        state.invalidatePage(state.document.pages[index])
+        if (persist) {
+            state.document.dirty = true
+            refreshContent()
+        }
+        view.requestRender()
+    }
+
+    // --- end video ---------------------------------------------------------------------------------
 
     /** Save an encoded image into the on-disk sticker library (validated by a probe decode). */
     fun addSticker(bytes: ByteArray) {
