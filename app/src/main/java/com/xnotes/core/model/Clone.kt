@@ -28,6 +28,7 @@ fun CanvasItem.deepCopy(measurer: TextMeasurer): CanvasItem = when (this) {
             it.label = label
             it.labelAt = labelAt
         }
+    is VideoLinkItem -> copy() // feat-video-alist
     else -> this
     // Carried, not reset: autosave snapshots the document through this, so dropping the lock here
     // would quietly unlock everything on the next save.
