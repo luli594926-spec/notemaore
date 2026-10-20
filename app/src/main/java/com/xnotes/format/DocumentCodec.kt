@@ -24,6 +24,7 @@ import com.xnotes.core.model.ShapeLabel
 import com.xnotes.core.model.Stroke
 import com.xnotes.core.model.TextItem
 import com.xnotes.core.model.TextStyle
+import com.xnotes.core.model.VideoItem
 import com.xnotes.core.model.VideoLinkItem
 import com.xnotes.core.pal.FontFace
 import com.xnotes.core.pal.ImageCodec
@@ -300,6 +301,7 @@ class DocumentCodec(
                 is ShapeItem -> writeShape(j, item, ids[item])
                 is ConnectorItem -> writeConnector(j, item, ids)
                 is VideoLinkItem -> VideoLinkJson.write(j, item) // feat-video-alist
+                is VideoItem -> VideoLinkJson.writeVideo(j, item) // feat-video-alist
                 else -> {} // unrecognized kind: not written
             }
         }
@@ -1062,6 +1064,7 @@ class DocumentCodec(
                 items.add(if (c != null && s.kind == ShapeItem.KIND) buildConnector(s, c, glue) else buildShape(s))
             }
             VideoLinkItem.KIND -> VideoLinkJson.build(s.video, s.pos, textMeasurer)?.let { items.add(it) }
+            VideoItem.KIND -> VideoLinkJson.buildVideo(s.video, s.rect, textMeasurer)?.let { items.add(it) }
             else -> {} // unrecognized kind: skipped (forgiving)
         }
         if (items.size > before) glue.named(items[before], s.id)

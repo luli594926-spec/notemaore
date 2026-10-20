@@ -77,7 +77,7 @@ class VideoLinkItem(
     var seconds: Double,
     var pointSize: Double = DEFAULT_POINT_SIZE,
     private val measurer: TextMeasurer,
-) : CanvasItem {
+) : CanvasItem, EraserProtected {
 
     override val kind = KIND
     override val resizable = false

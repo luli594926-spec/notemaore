@@ -6,6 +6,9 @@ import com.xnotes.core.geometry.Pt
 import com.xnotes.core.model.Document
 import com.xnotes.core.model.Page
 import com.xnotes.core.model.TextItem
+import com.xnotes.core.geometry.Affine
+import com.xnotes.core.geometry.Rect
+import com.xnotes.core.model.VideoItem
 import com.xnotes.core.model.VideoLinkItem
 import com.xnotes.core.model.VideoSource
 import com.xnotes.core.model.deepCopy
@@ -91,4 +94,25 @@ class VideoLinkCodecTest {
         assertEquals("1:23", formatTimestamp(83.9))
         assertEquals("1:00:05", formatTimestamp(3605.0))
     }
+
+    @Test fun embeddedVideoRoundTripsBoxSourceAndResumePoint() {
+        val doc = Document()
+        val page = Page(800.0, 1000.0)
+        page.items.add(VideoItem(Rect(10.0, 20.0, 320.0, 180.0), VideoSource.Alist("/v/a.mkv"), "a", 42.0, measurer))
+        doc.pages.add(page)
+        val v = roundTrip(doc).pages[0].items.single() as VideoItem
+        assertEquals(Rect(10.0, 20.0, 320.0, 180.0), v.rect)
+        assertEquals("/v/a.mkv", v.source.value)
+        assertTrue(v.source is VideoSource.Alist)
+        assertEquals(42.0, v.seconds(), 1e-9)
+    }
+
+    @Test fun embeddedVideoResizeKeepsItsAspect() {
+        val v = VideoItem(Rect(0.0, 0.0, 160.0, 90.0), VideoSource.Url("https://a"), "", 0.0, measurer)
+        v.applyTransform(Affine.scaleAbout(Pt(0.0, 0.0), 2.0, 1.0))
+        assertEquals(320.0, v.rect.w, 1e-6)
+        assertEquals(180.0, v.rect.h, 1e-6)
+    }
+
+    private fun VideoItem.seconds() = startSeconds
 }

@@ -1367,7 +1367,7 @@ class InteractionController(
         val reach = Rect.bounding(path).outset(radius)
         val candidates = ArrayList<Any>()
         page.items.filterTo(candidates) {
-            !it.locked && it !is ImageItem && it !is TextItem && it.paintBounds().intersects(reach)
+            !it.locked && it !is ImageItem && it !is TextItem && it !is com.xnotes.core.model.EraserProtected && it.paintBounds().intersects(reach)
         }
         if (eraser.eraseMarkups) candidates.addAll(page.markups)
         val ptPerPx = 72.0 / state.document.dpi
@@ -1468,7 +1468,7 @@ class InteractionController(
      *  region, or null if nothing changed. */
     private fun eraseStrokesFromPage(page: Page, cx: Double, cy: Double, radius: Double): Rect? {
         val toRemove = page.items.filter {
-            !it.locked && it !is ImageItem && it !is TextItem && it.intersectsCircle(cx, cy, radius)
+            !it.locked && it !is ImageItem && it !is TextItem && it !is com.xnotes.core.model.EraserProtected && it.intersectsCircle(cx, cy, radius)
         }
         if (toRemove.isEmpty()) return null
         var dirty: Rect? = null
