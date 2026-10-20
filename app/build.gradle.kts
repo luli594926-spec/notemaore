@@ -135,6 +135,10 @@ dependencies {
     implementation(libs.latex.base)
     implementation(libs.latex.parser)
     implementation(libs.latex.renderer)
+    // In-note video panel (com.xnotes.video): playback, HLS (.m3u8) streams, AspectRatioFrameLayout.
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.exoplayer.hls)
+    implementation(libs.androidx.media3.ui)
     debugImplementation(libs.androidx.ui.tooling)
 
     testImplementation(libs.junit)
